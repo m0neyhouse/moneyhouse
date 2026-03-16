@@ -34,7 +34,7 @@ export async function createPaymentPreference(contract: Contract): Promise<Payme
       },
       auto_return: 'approved',
       external_reference: contract.id,
-      statement_descriptor: 'SIGN & PAY',
+      statement_descriptor: 'SIGN AND PAY',
     },
   });
 
