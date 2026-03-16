@@ -63,8 +63,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const paymentUrl = isSandbox ? payment.sandbox_init_point : payment.init_point;
 
     return NextResponse.json({ success: true, data: { paymentUrl } });
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
+  } catch (error: any) {
+    let msg = 'Erro interno desconhecido.';
+    if (error instanceof Error) {
+      msg = error.message;
+    } else if (typeof error === 'object' && error !== null) {
+      msg = error.message || error.error || JSON.stringify(error);
+    } else {
+      msg = String(error);
+    }
+    
     console.error('Erro ao processar assinatura:', msg);
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
