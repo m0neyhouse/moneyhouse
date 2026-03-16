@@ -78,3 +78,21 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  
+  const contract = await getContract(id);
+  if (!contract) {
+    return NextResponse.json({ success: false, error: 'Contrato não encontrado' }, { status: 404 });
+  }
+
+  const { deleteContract } = await import('@/lib/contracts');
+  const success = await deleteContract(id);
+
+  if (!success) {
+    return NextResponse.json({ success: false, error: 'Erro ao deletar contrato' }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true, message: 'Contrato deletado' });
+}

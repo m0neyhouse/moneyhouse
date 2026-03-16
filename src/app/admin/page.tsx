@@ -55,6 +55,19 @@ export default function AdminPage() {
     router.push('/admin/login');
   }
 
+  async function handleDelete(id: string) {
+    if (!window.confirm('Tem certeza que deseja apagar este contrato?')) return;
+    
+    setLoading(true);
+    const res = await fetch(`/api/contracts/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+        setContracts(prev => prev.filter(c => c.id !== id));
+    } else {
+        alert('Falha ao excluir contrato.');
+    }
+    setLoading(false);
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setFormError('');
@@ -186,20 +199,31 @@ export default function AdminPage() {
                       <td>{formatDate(contract.createdAt)}</td>
                       <td>{formatDate(contract.expiresAt)}</td>
                       <td>
-                        {contract.status === 'pending' ? (
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          {contract.status === 'pending' ? (
+                            <button
+                              className="btn btn--ghost btn--sm"
+                              title="Copiar link"
+                              onClick={() => {
+                                const link = `${window.location.origin}/contrato/${contract.id}`;
+                                setGeneratedLink(link);
+                                setShowForm(false);
+                              }}
+                            >
+                              📋
+                            </button>
+                          ) : (
+                            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', padding: '0 8px' }}>—</span>
+                          )}
                           <button
                             className="btn btn--ghost btn--sm"
-                            onClick={() => {
-                              const link = `${window.location.origin}/contrato/${contract.id}`;
-                              setGeneratedLink(link);
-                              setShowForm(false);
-                            }}
+                            style={{ color: '#EF4444' }}
+                            title="Apagar contrato"
+                            onClick={() => handleDelete(contract.id)}
                           >
-                            Copiar link
+                            🗑️
                           </button>
-                        ) : (
-                          <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>—</span>
-                        )}
+                        </div>
                       </td>
                     </tr>
                   ))}

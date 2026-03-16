@@ -1,4 +1,4 @@
-import { put, head, list } from '@vercel/blob';
+import { put, head, list, del } from '@vercel/blob';
 import { v4 as uuidv4 } from 'uuid';
 import type { Contract, CreateContractInput, SignContractInput } from '@/types';
 
@@ -145,4 +145,19 @@ export async function updatePaymentStatus(contractId: string, status: Contract['
   const updated: Contract = { ...contract, status };
   await saveContract(updated);
   return updated;
+}
+
+export async function deleteContract(id: string): Promise<boolean> {
+  try {
+    const urls = [
+      `${BLOB_PREFIX}${id}.json`,
+      `${BLOB_PREFIX}signatures/${id}.png`
+    ];
+    // Tenta deletar tanto o json quanto a imagem da assinatura
+    await del(urls);
+    return true;
+  } catch (error) {
+    console.error('Erro ao deletar contrato do Blob:', error);
+    return false;
+  }
 }
