@@ -64,16 +64,27 @@ export async function getContract(id: string): Promise<Contract | null> {
 export async function listContracts(): Promise<Contract[]> {
   try {
     const { blobs } = await list({ prefix: BLOB_PREFIX });
+    const jsonBlobs = blobs.filter((b) => b.pathname.endsWith('.json'));
+
     const contracts = await Promise.all(
-      blobs.map(async (blob) => {
-        const response = await fetch(blob.url);
-        return (await response.json()) as Contract;
+      jsonBlobs.map(async (blob) => {
+        try {
+          const response = await fetch(blob.url);
+          return (await response.json()) as Contract;
+        } catch {
+           return null;
+        }
       })
     );
-    return contracts.sort(
+    
+    // Filtramos os nulls que vieram de falhas no parse
+    const validContracts = contracts.filter((c): c is Contract => c !== null);
+
+    return validContracts.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  } catch {
+  } catch (err) {
+    console.error('List contracts failed:', err);
     return [];
   }
 }
