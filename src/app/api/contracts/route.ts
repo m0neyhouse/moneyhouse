@@ -39,7 +39,8 @@ export async function POST(request: NextRequest) {
     const contract = await createContract(parsed.data);
     return NextResponse.json({ success: true, data: contract }, { status: 201 });
   } catch (error) {
-    console.error('Erro ao criar contrato:', error);
-    return NextResponse.json({ success: false, error: 'Erro interno' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('Erro ao criar contrato:', msg);
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }
