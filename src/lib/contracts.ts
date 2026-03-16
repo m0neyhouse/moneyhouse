@@ -126,3 +126,12 @@ export async function updatePayment(
   await saveContract(updated);
   return updated;
 }
+
+export async function updatePaymentStatus(contractId: string, status: Contract['status']): Promise<Contract | null> {
+  const contract = await readContract(contractId);
+  if (!contract) return null;
+
+  const updated: Contract = { ...contract, status };
+  await saveContract(updated);
+  return updated;
+}

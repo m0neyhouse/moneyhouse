@@ -1,24 +1,23 @@
 import Link from 'next/link';
 
-export default function PagamentoSucessoPage() {
+export default function SucessoPage() {
   return (
-    <div className="page-wrapper">
-      <div className="container container--sm" style={{ width: '100%', textAlign: 'center' }}>
-        <div className="status-icon status-icon--success" style={{ width: 90, height: 90, fontSize: '2.5rem', margin: '0 auto 28px' }}>
-          ✅
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)', padding: 20 }}>
+      <div className="card" style={{ maxWidth: 400, textAlign: 'center', padding: '40px 24px', width: '100%' }}>
+        <div style={{
+          width: 80, height: 80, borderRadius: '50%', background: '#10bcc9', color: 'white',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem',
+          margin: '0 auto 24px', boxShadow: '0 4px 12px rgba(16, 188, 201, 0.3)'
+        }}>
+          ✓
         </div>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: 12 }}>
-          Pagamento confirmado!
-        </h1>
-        <p style={{ color: 'var(--color-text-secondary)', marginBottom: 8 }}>
-          Seu pagamento foi processado com sucesso. O contrato está confirmado.
+        <h1 style={{ fontSize: '1.5rem', marginBottom: 12, color: 'var(--color-text)', fontWeight: 700 }}>Pagamento Sucesso!</h1>
+        <p style={{ color: 'var(--color-text-secondary)', marginBottom: 32, lineHeight: 1.5, fontSize: '0.95rem' }}>
+          Seu contrato foi assinado e o pagamento processado com sucesso. Agradecemos a confiança!
         </p>
-        <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', marginBottom: 32 }}>
-          Em breve você receberá os detalhes do serviço contratado.
-        </p>
-        <div className="alert alert--success" style={{ textAlign: 'left', marginBottom: 24 }}>
-          🎉 Obrigado por confiar em nosso serviço! Entraremos em contato em breve.
-        </div>
+        <Link href="/" className="btn btn--primary btn--full btn--lg">
+          Voltar ao Início
+        </Link>
       </div>
     </div>
   );
