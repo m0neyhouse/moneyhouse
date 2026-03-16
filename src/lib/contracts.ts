@@ -19,6 +19,7 @@ async function saveContract(contract: Contract): Promise<void> {
     access: 'public',
     contentType: 'application/json',
     addRandomSuffix: false,
+    allowOverwrite: true,
   });
 }
 
@@ -91,6 +92,8 @@ export async function signContract(input: SignContractInput): Promise<Contract |
       const blob = await put(`${BLOB_PREFIX}signatures/${contract.id}.png`, buffer, {
         access: 'public',
         contentType: 'image/png',
+        addRandomSuffix: false,
+        allowOverwrite: true,
       });
       signatureUrl = blob.url;
     } catch (e) {
