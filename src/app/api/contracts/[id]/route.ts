@@ -56,7 +56,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ success: false, error: 'Erro ao assinar' }, { status: 500 });
     }
 
-    const payment = await createPaymentPreference(signed);
+    const origin = request.nextUrl.origin;
+    const payment = await createPaymentPreference(signed, origin);
     await updatePayment(id, payment.id, payment.init_point);
 
     const isSandbox = process.env.MERCADOPAGO_ACCESS_TOKEN?.startsWith('TEST-');
