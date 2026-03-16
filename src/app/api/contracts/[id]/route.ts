@@ -64,7 +64,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     return NextResponse.json({ success: true, data: { paymentUrl } });
   } catch (error) {
-    console.error('Erro ao processar assinatura:', error);
-    return NextResponse.json({ success: false, error: 'Erro interno' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('Erro ao processar assinatura:', msg);
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

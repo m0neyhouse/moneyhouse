@@ -81,10 +81,28 @@ export async function signContract(input: SignContractInput): Promise<Contract |
   const contract = await readContract(input.contractId);
   if (!contract || contract.status !== 'pending') return null;
 
+  let signatureUrl = input.signatureImage;
+
+  // Se a imagem veio em Base64, salva o binário no Blob para não estourar tamanho do JSON
+  if (input.signatureImage && input.signatureImage.startsWith('data:image/')) {
+    try {
+      const base64Data = input.signatureImage.split(',')[1];
+      const buffer = Buffer.from(base64Data, 'base64');
+      const blob = await put(`${BLOB_PREFIX}signatures/${contract.id}.png`, buffer, {
+        access: 'public',
+        contentType: 'image/png',
+      });
+      signatureUrl = blob.url;
+    } catch (e) {
+      console.error('Erro ao salvar imagem da assinatura no Blob:', e);
+      // Fallback para tentar salvar inline se o Blob falhar
+    }
+  }
+
   const signed: Contract = {
     ...contract,
     status: 'signed',
-    signatureImage: input.signatureImage,
+    signatureImage: signatureUrl,
     signedAt: new Date().toISOString(),
     signerIp: input.signerIp,
   };
