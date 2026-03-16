@@ -1,0 +1,55 @@
+import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import { getContract } from '@/lib/contracts';
+import ContratoClient from './ContratoClient';
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const contract = getContract(params.id);
+  if (!contract) return { title: 'Contrato não encontrado' };
+  return {
+    title: `Contrato — ${contract.clientName} | Sign & Pay`,
+    description: `Contrato de prestação de serviços para ${contract.clientName}.`,
+  };
+}
+
+export default function ContratoPage({ params }: { params: { id: string } }) {
+  const contract = getContract(params.id);
+
+  if (!contract) {
+    notFound();
+  }
+
+  if (contract.status === 'expired') {
+    return (
+      <div className="page-wrapper">
+        <div className="container container--sm" style={{ width: '100%', textAlign: 'center' }}>
+          <div className="status-icon" style={{ background: '#f1f5f9', margin: '0 auto 24px' }}>
+            ⏰
+          </div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 12 }}>Link expirado</h1>
+          <p style={{ color: 'var(--color-text-secondary)' }}>
+            Este link de contrato não é mais válido. Entre em contato com o prestador de serviços.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (contract.status === 'signed' || contract.status === 'paid') {
+    return (
+      <div className="page-wrapper">
+        <div className="container container--sm" style={{ width: '100%', textAlign: 'center' }}>
+          <div className="status-icon status-icon--success" style={{ margin: '0 auto 24px' }}>
+            ✅
+          </div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 12 }}>Contrato já assinado</h1>
+          <p style={{ color: 'var(--color-text-secondary)' }}>
+            Este contrato já foi assinado e processado. Obrigado!
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return <ContratoClient contract={contract} />;
+}
