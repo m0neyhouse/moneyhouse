@@ -16,7 +16,7 @@ async function readContract(id: string): Promise<Contract | null> {
 
 async function saveContract(contract: Contract): Promise<void> {
   await put(`${BLOB_PREFIX}${contract.id}.json`, JSON.stringify(contract), {
-    access: 'private',
+    access: 'public',
     contentType: 'application/json',
     addRandomSuffix: false,
   });
