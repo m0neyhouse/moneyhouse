@@ -38,7 +38,7 @@ export async function createSession(): Promise<string> {
 
 export async function validateSession(): Promise<boolean> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE)?.value;
     if (!token) return false;
     const secret = getJwtSecret();

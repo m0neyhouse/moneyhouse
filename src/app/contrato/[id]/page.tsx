@@ -3,8 +3,11 @@ import type { Metadata } from 'next';
 import { getContract } from '@/lib/contracts';
 import ContratoClient from './ContratoClient';
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const contract = getContract(params.id);
+type Props = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const contract = getContract(id);
   if (!contract) return { title: 'Contrato não encontrado' };
   return {
     title: `Contrato — ${contract.clientName} | Sign & Pay`,
@@ -12,8 +15,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
-export default function ContratoPage({ params }: { params: { id: string } }) {
-  const contract = getContract(params.id);
+export default async function ContratoPage({ params }: Props) {
+  const { id } = await params;
+  const contract = getContract(id);
 
   if (!contract) {
     notFound();

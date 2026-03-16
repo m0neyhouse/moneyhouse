@@ -6,8 +6,9 @@ import { updatePayment } from '@/lib/contracts';
 import { z } from 'zod';
 
 // GET /api/contracts/[id] — público, usado pelo cliente
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
-  const contract = getContract(params.id);
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const contract = getContract(id);
 
   if (!contract) {
     return NextResponse.json({ success: false, error: 'Contrato não encontrado' }, { status: 404 });
@@ -18,17 +19,18 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
   }
 
   // Não retornar imagem da assinatura na consulta pública
-  const { signatureImage: _, ...safeContract } = contract;
+  const { signatureImage: _sig, ...safeContract } = contract;
   return NextResponse.json({ success: true, data: safeContract });
 }
 
 const signSchema = z.object({
-  signatureImage: z.string().min(100, 'Assinatura inválida'), // base64 mínimo
+  signatureImage: z.string().min(100, 'Assinatura inválida'),
 });
 
 // PATCH /api/contracts/[id] — assinar contrato e gerar link de pagamento
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-  const contract = getContract(params.id);
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const contract = getContract(id);
 
   if (!contract) {
     return NextResponse.json({ success: false, error: 'Contrato não encontrado' }, { status: 404 });
@@ -51,9 +53,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       request.headers.get('x-real-ip') ??
       undefined;
 
-    // Registra assinatura
     const signed = signContract({
-      contractId: params.id,
+      contractId: id,
       signatureImage: parsed.data.signatureImage,
       signerIp,
     });
@@ -62,11 +63,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ success: false, error: 'Erro ao assinar' }, { status: 500 });
     }
 
-    // Gera preferência de pagamento no MercadoPago
     const payment = await createPaymentPreference(signed);
-
-    // Salva referência do pagamento
-    updatePayment(params.id, payment.id, payment.init_point);
+    updatePayment(id, payment.id, payment.init_point);
 
     const isSandbox = process.env.MERCADOPAGO_ACCESS_TOKEN?.startsWith('TEST-');
     const paymentUrl = isSandbox ? payment.sandbox_init_point : payment.init_point;
