@@ -115,9 +115,9 @@ export default function ContratoClient({ contract }: { contract: Contract }) {
 
           {/* OBJETO */}
           <div className="contract-section">
-            <h4>OBJETO DO CONTRATO</h4>
+            <h4>OBJETIVO DO CONTRATO</h4>
             <p>
-              O presente contrato tem por objeto a prestação de serviço de{' '}
+              O presente contrato tem por objetivo a prestação de serviço de{' '}
               <strong>gestão de redes sociais (Social Media)</strong>
               {contract.serviceName ? `, especificamente: ${contract.serviceName}` : ''}, incluindo:
             </p>
@@ -153,10 +153,16 @@ export default function ContratoClient({ contract }: { contract: Contract }) {
           {/* PRAZO */}
           <div className="contract-section">
             <h4>PRAZO DO SERVIÇO</h4>
-            <p>
-              O serviço terá duração de <strong>30 dias / 1 mês</strong>, iniciando após a confirmação
-              do pagamento e o envio das informações necessárias pelo CONTRATANTE.
-            </p>
+            {(() => {
+              const dias = Math.round((new Date(contract.expiresAt).getTime() - new Date(contract.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+              const prazo = dias >= 30 ? `${Math.round(dias / 30)} ${Math.round(dias / 30) === 1 ? 'mês' : 'meses'}` : `${dias} dias`;
+              return (
+                <p>
+                  O serviço terá duração de <strong>{prazo}</strong>, iniciando após a confirmação
+                  do pagamento e o envio das informações necessárias pelo CONTRATANTE.
+                </p>
+              );
+            })()}
           </div>
 
           {/* CLÁUSULAS */}
