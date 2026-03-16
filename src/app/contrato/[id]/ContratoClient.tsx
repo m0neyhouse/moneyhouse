@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import type { Contract } from '@/types';
 import SignaturePad from '@/components/contract/SignaturePad';
+
+const CONTRATADO_NAME = 'Matheus Dias';
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -13,8 +14,40 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
+function valueToWords(value: number): string {
+  if (value === 0) return 'zero reais';
+  const n = Math.round(value);
+
+  const ones = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
+  const teens = ['dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+  const tens = ['', 'dez', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+
+  const toWords = (num: number): string => {
+    if (num === 0) return '';
+    if (num < 10) return ones[num];
+    if (num < 20) return teens[num - 10];
+    if (num < 100) {
+      const t = Math.floor(num / 10), u = num % 10;
+      return u === 0 ? tens[t] : `${tens[t]} e ${ones[u]}`;
+    }
+    if (num < 1000) {
+      const h = Math.floor(num / 100), r = num % 100;
+      const hw = h === 1 ? (r === 0 ? 'cem' : 'cento') : ['', '', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'][h];
+      return r === 0 ? hw : `${hw} e ${toWords(r)}`;
+    }
+    if (num < 1000000) {
+      const th = Math.floor(num / 1000), r = num % 1000;
+      const tw = th === 1 ? 'mil' : `${toWords(th)} mil`;
+      return r === 0 ? tw : `${tw} e ${toWords(r)}`;
+    }
+    return String(num);
+  };
+
+  const words = toWords(n);
+  return n === 1 ? `${words} real` : `${words} reais`;
+}
+
 export default function ContratoClient({ contract }: { contract: Contract }) {
-  const router = useRouter();
   const [signature, setSignature] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -30,7 +63,6 @@ export default function ContratoClient({ contract }: { contract: Contract }) {
     if (!signature || !agreed) return;
     setError('');
     setSubmitting(true);
-
     try {
       const res = await fetch(`/api/contracts/${contract.id}`, {
         method: 'PATCH',
@@ -38,7 +70,6 @@ export default function ContratoClient({ contract }: { contract: Contract }) {
         body: JSON.stringify({ signatureImage: signature }),
       });
       const data = await res.json();
-
       if (data.success && data.data.paymentUrl) {
         window.location.href = data.data.paymentUrl;
       } else {
@@ -61,74 +92,93 @@ export default function ContratoClient({ contract }: { contract: Contract }) {
             ✍️ Sign <span style={{ color: 'var(--color-text)' }}>&amp; Pay</span>
           </div>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', marginTop: 4 }}>
-            Contrato de Prestação de Serviços
+            Contrato de Prestação de Serviços — Social Media
           </p>
         </div>
 
         {/* Contract Document */}
         <div className="contract-document" style={{ marginBottom: 32 }}>
-          <div className="contract-title">Contrato de Prestação de Serviços</div>
+          <div className="contract-title">CONTRATO DE PRESTAÇÃO DE SERVIÇOS</div>
 
+          {/* PARTES */}
           <div className="contract-section">
-            <h4>Partes</h4>
+            <h4>PARTES</h4>
             <p>
-              <strong>CONTRATANTE:</strong> <span className="contract-highlight">{contract.clientName}</span>
+              <strong>CONTRATANTE:</strong>{' '}
+              <strong style={{ color: 'var(--color-primary)' }}>{contract.clientName}</strong>
             </p>
-            <p style={{ marginTop: 8 }}>
-              <strong>CONTRATADA:</strong> Prestador de Serviços
+            <p style={{ marginTop: 10 }}>
+              <strong>CONTRATADO:</strong>{' '}
+              <strong style={{ color: 'var(--color-primary)' }}>{CONTRATADO_NAME}</strong>
             </p>
           </div>
 
+          {/* OBJETO */}
           <div className="contract-section">
-            <h4>Objeto do Contrato</h4>
+            <h4>OBJETO DO CONTRATO</h4>
             <p>
-              O presente contrato tem por objeto a prestação do serviço de{' '}
-              <span className="contract-highlight">{contract.serviceName}</span>.
+              O presente contrato tem por objeto a prestação de serviço de{' '}
+              <strong>gestão de redes sociais (Social Media)</strong>
+              {contract.serviceName ? `, especificamente: ${contract.serviceName}` : ''}, incluindo:
+            </p>
+            <ul style={{ marginTop: 12, paddingLeft: 24, lineHeight: 2 }}>
+              <li>Planejamento de conteúdo</li>
+              <li>Criação de artes para publicações</li>
+              <li>Criação de legendas</li>
+              <li>Organização e publicação dos posts no perfil do CONTRATANTE</li>
               {contract.serviceDescription && (
-                <><br /><br /><em>{contract.serviceDescription}</em></>
+                <li><em>{contract.serviceDescription}</em></li>
               )}
-            </p>
+            </ul>
           </div>
 
+          {/* VALOR */}
           <div className="contract-section">
-            <h4>Valor e Forma de Pagamento</h4>
+            <h4>VALOR E FORMA DE PAGAMENTO</h4>
             <p>
-              Pelo serviço descrito acima, o CONTRATANTE pagará à CONTRATADA o valor de{' '}
-              <span className="contract-value">{formatCurrency(contract.value)}</span>{' '}
-              (
-              {new Intl.NumberFormat('pt-BR', {
-                style: 'currency', currency: 'BRL',
-              }).format(contract.value)} reais)
-              , mediante pagamento digital no ato da assinatura deste instrumento.
+              Pelo serviço descrito acima, o CONTRATANTE pagará ao CONTRATADO o valor de
             </p>
-          </div>
-
-          <div className="contract-section">
-            <h4>Cláusulas Gerais</h4>
+            <p style={{ margin: '14px 0', fontSize: '1.1rem' }}>
+              <strong style={{ color: 'var(--color-primary)', fontSize: '1.15rem' }}>
+                {formatCurrency(contract.value)}
+              </strong>{' '}
+              (<strong>{valueToWords(contract.value)}</strong>)
+            </p>
             <p>
-              <strong>1.</strong> A CONTRATADA iniciará a prestação do serviço após a confirmação do pagamento.
-            </p>
-            <p style={{ marginTop: 8 }}>
-              <strong>2.</strong> O CONTRATANTE compromete-se a fornecer todas as informações necessárias à execução do serviço.
-            </p>
-            <p style={{ marginTop: 8 }}>
-              <strong>3.</strong> Qualquer modificação no escopo do serviço deverá ser acordada previamente entre as partes.
-            </p>
-            <p style={{ marginTop: 8 }}>
-              <strong>4.</strong> Em caso de desistência após o início da execução, será cobrado o valor proporcional ao trabalho realizado.
-            </p>
-            <p style={{ marginTop: 8 }}>
-              <strong>5.</strong> As partes elegem a comarca do Contratado para dirimir quaisquer controvérsias deste contrato.
+              O pagamento será realizado <strong>digitalmente através do Mercado Pago</strong>, no ato
+              da assinatura deste contrato.
             </p>
           </div>
 
+          {/* PRAZO */}
           <div className="contract-section">
-            <h4>Data de Celebração</h4>
-            <p>{today}</p>
+            <h4>PRAZO DO SERVIÇO</h4>
+            <p>
+              O serviço terá duração de <strong>30 dias / 1 mês</strong>, iniciando após a confirmação
+              do pagamento e o envio das informações necessárias pelo CONTRATANTE.
+            </p>
+          </div>
+
+          {/* CLÁUSULAS */}
+          <div className="contract-section">
+            <h4>CLÁUSULAS GERAIS</h4>
+            <ol style={{ paddingLeft: 22, lineHeight: 2.2 }}>
+              <li>O CONTRATADO iniciará a prestação do serviço após a confirmação do pagamento.</li>
+              <li>O CONTRATANTE compromete-se a fornecer todas as informações necessárias para a execução do serviço.</li>
+              <li>Qualquer modificação no escopo do serviço deverá ser previamente acordada entre as partes.</li>
+              <li>Em caso de desistência após o início da execução, poderá ser cobrado valor proporcional ao trabalho realizado.</li>
+              <li>As partes elegem a comarca do CONTRATADO para dirimir quaisquer controvérsias deste contrato.</li>
+            </ol>
+          </div>
+
+          {/* DATA */}
+          <div className="contract-section">
+            <h4>DATA DE CELEBRAÇÃO</h4>
+            <p><strong>{today}</strong></p>
           </div>
         </div>
 
-        {/* Signature Section */}
+        {/* Signature */}
         <div className="card" style={{ marginBottom: 24 }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 8 }}>Assinatura Digital</h3>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.88rem', marginBottom: 20 }}>
@@ -137,7 +187,6 @@ export default function ContratoClient({ contract }: { contract: Contract }) {
 
           <SignaturePad onChange={handleSignatureChange} />
 
-          {/* Checkbox */}
           <label style={{
             display: 'flex', gap: 12, alignItems: 'flex-start',
             padding: '16px 0', borderTop: '1px solid var(--color-border)', marginTop: 16, cursor: 'pointer'
@@ -169,7 +218,7 @@ export default function ContratoClient({ contract }: { contract: Contract }) {
             {submitting ? (
               <><div className="spinner" /> Processando...</>
             ) : (
-              '✍️ Assinar e Pagar ' + formatCurrency(contract.value)
+              `✍️ Assinar e Pagar ${formatCurrency(contract.value)}`
             )}
           </button>
 
