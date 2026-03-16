@@ -11,15 +11,17 @@ export default function SignaturePad({ onChange }: SignaturePadProps) {
   const drawing = useRef(false);
   const [isEmpty, setIsEmpty] = useState(true);
 
-  const getPos = (e: { clientX: number; clientY: number }, canvas: HTMLCanvasElement) => {
+  const getPos = useCallback((clientX: number, clientY: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     return {
-      x: e.clientX * scaleX - rect.left * scaleX,
-      y: e.clientY * scaleY - rect.top * scaleY,
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
     };
-  };
+  }, []);
 
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -41,16 +43,16 @@ export default function SignaturePad({ onChange }: SignaturePadProps) {
     return () => window.removeEventListener('resize', initCanvas);
   }, [initCanvas]);
 
-  function startDraw(x: number, y: number) {
+  const startDraw = useCallback((x: number, y: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     drawing.current = true;
     const ctx = canvas.getContext('2d')!;
     ctx.beginPath();
     ctx.moveTo(x, y);
-  }
+  }, []);
 
-  function draw(x: number, y: number) {
+  const draw = useCallback((x: number, y: number) => {
     if (!drawing.current) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -61,14 +63,69 @@ export default function SignaturePad({ onChange }: SignaturePadProps) {
       setIsEmpty(false);
       onChange(canvas.toDataURL('image/png'));
     }
-  }
+  }, [isEmpty, onChange]);
 
-  function endDraw() {
+  const endDraw = useCallback(() => {
     if (!drawing.current) return;
     drawing.current = false;
     const canvas = canvasRef.current;
     if (canvas && !isEmpty) onChange(canvas.toDataURL('image/png'));
-  }
+  }, [isEmpty, onChange]);
+
+  // Use native event listeners to prevent passive event warnings and block scroll
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      e.preventDefault(); // Impede scroll no mobile
+      const touch = e.touches[0];
+      const pos = getPos(touch.clientX, touch.clientY);
+      startDraw(pos.x, pos.y);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault(); // Impede scroll no mobile
+      const touch = e.touches[0];
+      const pos = getPos(touch.clientX, touch.clientY);
+      draw(pos.x, pos.y);
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      const pos = getPos(e.clientX, e.clientY);
+      startDraw(pos.x, pos.y);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const pos = getPos(e.clientX, e.clientY);
+      draw(pos.x, pos.y);
+    };
+
+    const handleEnd = () => {
+      endDraw();
+    };
+
+    // passive: false is critical for preventDefault to work on touch events
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleEnd, { passive: false });
+    canvas.addEventListener('touchcancel', handleEnd, { passive: false });
+
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleEnd); // Attach to window to catch mouseup outside canvas
+
+    return () => {
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchend', handleEnd);
+      canvas.removeEventListener('touchcancel', handleEnd);
+
+      canvas.removeEventListener('mousedown', handleMouseDown);
+      canvas.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleEnd);
+    };
+  }, [draw, endDraw, getPos, startDraw]);
 
   function clear() {
     const canvas = canvasRef.current;
@@ -81,34 +138,13 @@ export default function SignaturePad({ onChange }: SignaturePadProps) {
 
   return (
     <div>
-      <div className="signature-pad-wrapper">
+      <div className="signature-pad-wrapper" style={{ touchAction: 'none' }}>
         {isEmpty && (
           <div className="signature-placeholder">Assine aqui</div>
         )}
         <canvas
           ref={canvasRef}
-          style={{ width: '100%', height: 180, display: 'block' }}
-          onMouseDown={(e) => {
-            const pos = getPos(e.nativeEvent, canvasRef.current!);
-            startDraw(pos.x, pos.y);
-          }}
-          onMouseMove={(e) => {
-            const pos = getPos(e.nativeEvent, canvasRef.current!);
-            draw(pos.x, pos.y);
-          }}
-          onMouseUp={endDraw}
-          onMouseLeave={endDraw}
-          onTouchStart={(e) => {
-            e.preventDefault();
-            const pos = getPos(e.touches[0], canvasRef.current!);
-            startDraw(pos.x, pos.y);
-          }}
-          onTouchMove={(e) => {
-            e.preventDefault();
-            const pos = getPos(e.touches[0], canvasRef.current!);
-            draw(pos.x, pos.y);
-          }}
-          onTouchEnd={endDraw}
+          style={{ width: '100%', height: 180, display: 'block', touchAction: 'none' }}
         />
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
