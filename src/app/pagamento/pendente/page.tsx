@@ -1,6 +1,8 @@
 import Link from 'next/link';
 
-export default function PendentePage({ searchParams }: { searchParams: { contrato?: string } }) {
+export default async function PendentePage({ searchParams }: { searchParams: Promise<{ contrato?: string }> }) {
+  const { contrato: contratoId } = await searchParams;
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)', padding: 20 }}>
       <div className="card" style={{ maxWidth: 400, textAlign: 'center', padding: '40px 24px', width: '100%' }}>
@@ -16,9 +18,13 @@ export default function PendentePage({ searchParams }: { searchParams: { contrat
           Seu pagamento está em análise ou aguardando compensação (ex: Boleto bancário). Você receberá o recibo e daremos andamento ao serviço assim que for confirmado.
         </p>
         
-        <Link href="/" className="btn btn--primary btn--full btn--lg">
-          Entendido
-        </Link>
+        {contratoId ? (
+          <Link href={`/contrato/${contratoId}`} className="btn btn--primary btn--full btn--lg">
+            Acompanhar Status
+          </Link>
+        ) : (
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Pode fechar esta página.</p>
+        )}
       </div>
     </div>
   );

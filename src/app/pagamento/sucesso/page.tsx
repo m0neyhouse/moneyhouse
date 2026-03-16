@@ -1,6 +1,8 @@
 import Link from 'next/link';
 
-export default function SucessoPage() {
+export default async function SucessoPage({ searchParams }: { searchParams: Promise<{ contrato?: string }> }) {
+  const { contrato: contratoId } = await searchParams;
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)', padding: 20 }}>
       <div className="card" style={{ maxWidth: 400, textAlign: 'center', padding: '40px 24px', width: '100%' }}>
@@ -15,9 +17,13 @@ export default function SucessoPage() {
         <p style={{ color: 'var(--color-text-secondary)', marginBottom: 32, lineHeight: 1.5, fontSize: '0.95rem' }}>
           Seu contrato foi assinado e o pagamento processado com sucesso. Agradecemos a confiança!
         </p>
-        <Link href="/" className="btn btn--primary btn--full btn--lg">
-          Voltar ao Início
-        </Link>
+        {contratoId ? (
+          <Link href={`/contrato/${contratoId}`} className="btn btn--primary btn--full btn--lg">
+            Ver meu Contrato
+          </Link>
+        ) : (
+          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Pode fechar esta página.</p>
+        )}
       </div>
     </div>
   );
