@@ -10,7 +10,8 @@ function getMercadoPagoClient() {
 export async function createPaymentPreference(contract: Contract): Promise<PaymentPreference> {
   const client = getMercadoPagoClient();
   const preference = new Preference(client);
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
+  const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
+  const baseUrl = rawBaseUrl.replace(/\/+$/, '');
 
   const response = await preference.create({
     body: {
