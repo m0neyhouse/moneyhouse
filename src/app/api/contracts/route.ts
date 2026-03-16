@@ -5,10 +5,10 @@ import { createContract, listContracts } from '@/lib/contracts';
 import { z } from 'zod';
 
 const createContractSchema = z.object({
-  clientName: z.string().min(2, 'Nome deve ter ao menos 2 caracteres').max(100),
-  serviceName: z.string().min(2, 'Nome do serviço obrigatório').max(200),
+  clientName: z.string().min(2).max(100),
+  serviceName: z.string().min(2).max(200),
   serviceDescription: z.string().max(500).optional(),
-  value: z.number().positive('Valor deve ser positivo').max(999999),
+  value: z.number().positive().max(999999),
   validityDays: z.number().int().min(1).max(365).optional(),
 });
 
@@ -17,8 +17,7 @@ export async function GET() {
   if (!isAdmin) {
     return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
   }
-
-  const contracts = listContracts();
+  const contracts = await listContracts();
   return NextResponse.json({ success: true, data: contracts });
 }
 
@@ -31,15 +30,13 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const parsed = createContractSchema.safeParse(body);
-
     if (!parsed.success) {
       return NextResponse.json(
         { success: false, error: parsed.error.errors[0].message },
         { status: 400 }
       );
     }
-
-    const contract = createContract(parsed.data);
+    const contract = await createContract(parsed.data);
     return NextResponse.json({ success: true, data: contract }, { status: 201 });
   } catch (error) {
     console.error('Erro ao criar contrato:', error);

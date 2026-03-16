@@ -7,7 +7,7 @@ type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const contract = getContract(id);
+  const contract = await getContract(id);
   if (!contract) return { title: 'Contrato não encontrado' };
   return {
     title: `Contrato — ${contract.clientName} | Sign & Pay`,
@@ -17,22 +17,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ContratoPage({ params }: Props) {
   const { id } = await params;
-  const contract = getContract(id);
+  const contract = await getContract(id);
 
-  if (!contract) {
-    notFound();
-  }
+  if (!contract) notFound();
 
   if (contract.status === 'expired') {
     return (
       <div className="page-wrapper">
         <div className="container container--sm" style={{ width: '100%', textAlign: 'center' }}>
-          <div className="status-icon" style={{ background: '#f1f5f9', margin: '0 auto 24px' }}>
-            ⏰
-          </div>
+          <div className="status-icon" style={{ background: '#f1f5f9', margin: '0 auto 24px' }}>⏰</div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 12 }}>Link expirado</h1>
           <p style={{ color: 'var(--color-text-secondary)' }}>
-            Este link de contrato não é mais válido. Entre em contato com o prestador de serviços.
+            Este link não é mais válido. Entre em contato com o prestador de serviços.
           </p>
         </div>
       </div>
@@ -43,9 +39,7 @@ export default async function ContratoPage({ params }: Props) {
     return (
       <div className="page-wrapper">
         <div className="container container--sm" style={{ width: '100%', textAlign: 'center' }}>
-          <div className="status-icon status-icon--success" style={{ margin: '0 auto 24px' }}>
-            ✅
-          </div>
+          <div className="status-icon status-icon--success" style={{ margin: '0 auto 24px' }}>✅</div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 12 }}>Contrato já assinado</h1>
           <p style={{ color: 'var(--color-text-secondary)' }}>
             Este contrato já foi assinado e processado. Obrigado!
