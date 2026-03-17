@@ -24,6 +24,7 @@ function formatDate(iso: string) {
 export default function AdminPage() {
   const router = useRouter();
   const [contracts, setContracts] = useState<Contract[]>([]);
+  const [activeTab, setActiveTab] = useState<'ativos' | 'biblioteca'>('ativos');
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [generatedLink, setGeneratedLink] = useState('');
@@ -154,82 +155,169 @@ export default function AdminPage() {
             </div>
           ))}
         </div>
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 24, marginBottom: 24, borderBottom: '1px solid var(--color-border)' }}>
+          <button
+            onClick={() => setActiveTab('ativos')}
+            style={{ 
+              background: 'none', border: 'none', padding: '12px 0', fontSize: '1rem', fontWeight: 600, cursor: 'pointer',
+              color: activeTab === 'ativos' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              borderBottom: activeTab === 'ativos' ? '2px solid var(--color-primary)' : '2px solid transparent'
+            }}
+          >
+            Contratos Pendentes
+          </button>
+          <button
+            onClick={() => setActiveTab('biblioteca')}
+            style={{ 
+              background: 'none', border: 'none', padding: '12px 0', fontSize: '1rem', fontWeight: 600, cursor: 'pointer',
+              color: activeTab === 'biblioteca' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              borderBottom: activeTab === 'biblioteca' ? '2px solid var(--color-primary)' : '2px solid transparent'
+            }}
+          >
+            Biblioteca (Assinados/Pagos)
+          </button>
+        </div>
 
-        {/* Contracts table */}
+        {/* Contracts table - Ativos e Biblioteca */}
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           {loading ? (
             <div style={{ padding: 48, textAlign: 'center', color: 'var(--color-text-muted)' }}>
               Carregando contratos...
             </div>
-          ) : contracts.length === 0 ? (
-            <div style={{ padding: 60, textAlign: 'center' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📄</div>
-              <p style={{ color: 'var(--color-text-secondary)' }}>Nenhum contrato criado ainda.</p>
-              <button className="btn btn--primary" style={{ marginTop: 20 }} onClick={() => setShowForm(true)}>
-                Criar primeiro contrato
-              </button>
-            </div>
-          ) : (
-            <div className="table-wrapper" style={{ borderRadius: 0, border: 'none' }}>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Cliente</th>
-                    <th>Serviço</th>
-                    <th>Valor</th>
-                    <th>Status</th>
-                    <th>Criado em</th>
-                    <th>Expira em</th>
-                    <th>Link</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contracts.map((contract) => (
-                    <tr key={contract.id}>
-                      <td style={{ fontWeight: 600 }}>{contract.clientName}</td>
-                      <td>{contract.serviceName}</td>
-                      <td style={{ fontWeight: 700, color: 'var(--color-success)' }}>
-                        {formatCurrency(contract.value)}
-                      </td>
-                      <td>
-                        <span className={`badge badge--${contract.status}`}>
-                          {STATUS_LABELS[contract.status]}
-                        </span>
-                      </td>
-                      <td>{formatDate(contract.createdAt)}</td>
-                      <td>{formatDate(contract.expiresAt)}</td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          {contract.status === 'pending' ? (
+          ) : activeTab === 'ativos' ? (
+            // ABA: CONTRATOS ATIVOS (Pendentes)
+            contracts.filter(c => c.status === 'pending').length === 0 ? (
+              <div style={{ padding: 60, textAlign: 'center' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📄</div>
+                <p style={{ color: 'var(--color-text-secondary)' }}>Nenhum contrato pendente no momento.</p>
+                <button className="btn btn--primary" style={{ marginTop: 20 }} onClick={() => setShowForm(true)}>
+                  Criar primeiro contrato
+                </button>
+              </div>
+            ) : (
+              <div className="table-wrapper" style={{ borderRadius: 0, border: 'none' }}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Cliente</th>
+                      <th>Serviço</th>
+                      <th>Valor</th>
+                      <th>Status</th>
+                      <th>Criado em</th>
+                      <th>Expira em</th>
+                      <th>Link</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contracts.filter(c => c.status === 'pending').map((contract) => (
+                      <tr key={contract.id}>
+                        <td style={{ fontWeight: 600 }}>{contract.clientName}</td>
+                        <td>{contract.serviceName}</td>
+                        <td style={{ fontWeight: 700, color: 'var(--color-success)' }}>
+                          {formatCurrency(contract.value)}
+                        </td>
+                        <td>
+                          <span className={`badge badge--${contract.status}`}>
+                            {STATUS_LABELS[contract.status]}
+                          </span>
+                        </td>
+                        <td>{formatDate(contract.createdAt)}</td>
+                        <td>{formatDate(contract.expiresAt)}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                                className="btn btn--ghost btn--sm"
+                                title="Copiar link"
+                                onClick={() => {
+                                  const link = `${window.location.origin}/contrato/${contract.id}`;
+                                  setGeneratedLink(link);
+                                  setShowForm(false);
+                                }}
+                              >
+                                📋
+                              </button>
                             <button
                               className="btn btn--ghost btn--sm"
-                              title="Copiar link"
-                              onClick={() => {
-                                const link = `${window.location.origin}/contrato/${contract.id}`;
-                                setGeneratedLink(link);
-                                setShowForm(false);
-                              }}
+                              style={{ color: '#EF4444' }}
+                              title="Apagar contrato"
+                              onClick={() => handleDelete(contract.id)}
                             >
-                              📋
+                              🗑️
                             </button>
-                          ) : (
-                            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', padding: '0 8px' }}>—</span>
-                          )}
-                          <button
-                            className="btn btn--ghost btn--sm"
-                            style={{ color: '#EF4444' }}
-                            title="Apagar contrato"
-                            onClick={() => handleDelete(contract.id)}
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+          ) : (
+             // ABA: BIBLIOTECA DE CONTRATOS (Assinados ou Pagos)
+             contracts.filter(c => c.status === 'signed' || c.status === 'paid').length === 0 ? (
+               <div style={{ padding: 60, textAlign: 'center' }}>
+                 <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📚</div>
+                 <p style={{ color: 'var(--color-text-secondary)' }}>Sua biblioteca está vazia. Contratos assinados aparecerão aqui.</p>
+               </div>
+             ) : (
+               <div className="table-wrapper" style={{ borderRadius: 0, border: 'none' }}>
+                 <table>
+                   <thead>
+                     <tr>
+                       <th>Cliente</th>
+                       <th>Serviço</th>
+                       <th>Valor</th>
+                       <th>Status</th>
+                       <th>Data da Assinatura</th>
+                       <th>Ação</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {contracts
+                       .filter(c => c.status === 'signed' || c.status === 'paid')
+                       .sort((a, b) => a.clientName.localeCompare(b.clientName)) // Ordem alfabética pelo nome
+                       .map((contract) => (
+                       <tr key={contract.id}>
+                         <td style={{ fontWeight: 700, color: 'var(--color-text)' }}>
+                           <a 
+                             href={`/contrato/${contract.id}`} 
+                             target="_blank" 
+                             rel="noopener noreferrer"
+                             style={{ color: 'var(--color-primary)', textDecoration: 'none' }}
+                             title="Clique para ler o contrato assinado"
+                           >
+                             {contract.clientName}
+                           </a>
+                         </td>
+                         <td>{contract.serviceName}</td>
+                         <td style={{ fontWeight: 700, color: 'var(--color-success)' }}>
+                           {formatCurrency(contract.value)}
+                         </td>
+                         <td>
+                           <span className={`badge badge--${contract.status}`}>
+                             {STATUS_LABELS[contract.status]}
+                           </span>
+                         </td>
+                         <td>{contract.signedAt ? formatDate(contract.signedAt) : '—'}</td>
+                         <td>
+                           <div style={{ display: 'flex', gap: '8px' }}>
+                             <button
+                               className="btn btn--ghost btn--sm"
+                               style={{ color: '#EF4444' }}
+                               title="Apagar contrato da biblioteca"
+                               onClick={() => handleDelete(contract.id)}
+                             >
+                               🗑️
+                             </button>
+                           </div>
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+             )
           )}
         </div>
       </main>
