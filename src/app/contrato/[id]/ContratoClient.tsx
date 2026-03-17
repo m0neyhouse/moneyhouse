@@ -192,10 +192,10 @@ export default function ContratoClient({ contract }: { contract: Contract }) {
             <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', marginBottom: 24 }}>
               Assinado por <strong>{contract.clientName}</strong> em {contract.signedAt ? formatDate(contract.signedAt) : today}.
             </p>
-            {contract.signatureUrl && (
+            {contract.signatureImage && (
               <div style={{ border: '1px solid var(--color-border)', borderRadius: 8, padding: 16, display: 'inline-block', background: '#fff' }}>
                 <img 
-                  src={contract.signatureUrl} 
+                  src={contract.signatureImage} 
                   alt="Assinatura do Cliente" 
                   style={{ maxHeight: 150, maxWidth: '100%', objectFit: 'contain' }}
                 />
