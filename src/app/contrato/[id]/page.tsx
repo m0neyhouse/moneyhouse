@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { getContract } from '@/lib/contracts';
 import ContratoClient from './ContratoClient';
 
+export const dynamic = 'force-dynamic';
+
 type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
