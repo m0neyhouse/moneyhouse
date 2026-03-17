@@ -62,7 +62,7 @@ export default function ContratoClient({ contract }: { contract: Contract }) {
     setSignature(dataUrl);
   }, []);
 
-  const today = formatDate(new Date().toISOString());
+  const contractDate = formatDate(contract.createdAt);
 
   async function handleSign() {
     if (!signature || !agreed) return;
@@ -185,7 +185,7 @@ export default function ContratoClient({ contract }: { contract: Contract }) {
           {/* DATA */}
           <div className="contract-section">
             <h4>DATA DE CELEBRAÇÃO</h4>
-            <p><strong>{today}</strong></p>
+            <p><strong>{contractDate}</strong></p>
           </div>
         </div>
 
@@ -195,7 +195,7 @@ export default function ContratoClient({ contract }: { contract: Contract }) {
             <div style={{ color: 'var(--color-success)', fontSize: '2rem', marginBottom: 8 }}>✅</div>
             <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 8, color: 'var(--color-text)' }}>Contrato Assinado Digitalmente</h3>
             <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', marginBottom: 24 }}>
-              Assinado por <strong>{contract.clientName}</strong> em {contract.signedAt ? formatDate(contract.signedAt) : today}.
+              Assinado por <strong>{contract.clientName}</strong> em {contract.signedAt ? formatDate(contract.signedAt) : contractDate}.
             </p>
             {contract.signatureImage && (
               <div style={{ border: '1px solid var(--color-border)', borderRadius: 8, padding: 16, display: 'inline-block', background: '#fff' }}>
