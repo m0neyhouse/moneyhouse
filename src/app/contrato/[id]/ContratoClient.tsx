@@ -184,60 +184,84 @@ export default function ContratoClient({ contract }: { contract: Contract }) {
           </div>
         </div>
 
-        {/* Signature */}
-        <div className="card" style={{ marginBottom: 24 }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 8 }}>Assinatura Digital</h3>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.88rem', marginBottom: 20 }}>
-            Assine no campo abaixo para confirmar que leu e concorda com os termos do contrato.
-          </p>
-
-          <SignaturePad onChange={handleSignatureChange} />
-
-          <label style={{
-            display: 'flex', gap: 12, alignItems: 'flex-start',
-            padding: '16px 0', borderTop: '1px solid var(--color-border)', marginTop: 16, cursor: 'pointer'
-          }}>
-            <input
-              type="checkbox"
-              id="agree-terms"
-              checked={agreed}
-              onChange={(e) => setAgreed(e.target.checked)}
-              style={{ marginTop: 2, width: 18, height: 18, flexShrink: 0, cursor: 'pointer', accentColor: 'var(--color-primary)' }}
-            />
-            <span style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
-              Li e aceito todos os termos e condições do contrato acima. Entendo que minha assinatura
-              digital tem validade legal e que serei redirecionado para o pagamento ao confirmar.
-            </span>
-          </label>
-
-          {error && (
-            <div className="alert alert--danger" style={{ marginBottom: 16 }}>⚠ {error}</div>
-          )}
-
-          <button
-            className="btn btn--primary btn--full btn--lg"
-            onClick={handleSign}
-            disabled={!signature || !agreed || submitting}
-            id="btn-sign-and-pay"
-            style={{ fontSize: '1.05rem' }}
-          >
-            {submitting ? (
-              <><div className="spinner" /> Processando...</>
-            ) : (
-              `✍️ Assinar e Pagar ${formatCurrency(contract.value)}`
-            )}
-          </button>
-
-          {(!signature && !submitting) && (
-            <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.82rem', marginTop: 10 }}>
-              Faça sua assinatura acima para habilitar o botão
+        {/* Signature Area */}
+        {contract.status === 'signed' || contract.status === 'paid' ? (
+          <div className="card" style={{ marginBottom: 24, textAlign: 'center', borderColor: 'var(--color-success)', borderWidth: 2 }}>
+            <div style={{ color: 'var(--color-success)', fontSize: '2rem', marginBottom: 8 }}>✅</div>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 8, color: 'var(--color-text)' }}>Contrato Assinado Digitalmente</h3>
+            <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', marginBottom: 24 }}>
+              Assinado por <strong>{contract.clientName}</strong> em {contract.signedAt ? formatDate(contract.signedAt) : today}.
             </p>
-          )}
-        </div>
+            {contract.signatureUrl && (
+              <div style={{ border: '1px solid var(--color-border)', borderRadius: 8, padding: 16, display: 'inline-block', background: '#fff' }}>
+                <img 
+                  src={contract.signatureUrl} 
+                  alt="Assinatura do Cliente" 
+                  style={{ maxHeight: 150, maxWidth: '100%', objectFit: 'contain' }}
+                />
+              </div>
+            )}
+            <p style={{ marginTop: 24, fontSize: '0.9rem', color: 'var(--color-success)', fontWeight: 600 }}>
+              Status Atual: {contract.status === 'paid' ? 'Contrato Finalizado e Pago' : 'Aguardando Compensação Financeira'}
+            </p>
+          </div>
+        ) : (
+          <div className="card" style={{ marginBottom: 24 }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 8 }}>Assinatura Digital</h3>
+            <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.88rem', marginBottom: 20 }}>
+              Assine no campo abaixo para confirmar que leu e concorda com os termos do contrato.
+            </p>
 
-        <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.78rem' }}>
-          🔒 Seus dados são protegidos. O pagamento é processado pelo MercadoPago.
-        </p>
+            <SignaturePad onChange={handleSignatureChange} />
+
+            <label style={{
+              display: 'flex', gap: 12, alignItems: 'flex-start',
+              padding: '16px 0', borderTop: '1px solid var(--color-border)', marginTop: 16, cursor: 'pointer'
+            }}>
+              <input
+                type="checkbox"
+                id="agree-terms"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                style={{ marginTop: 2, width: 18, height: 18, flexShrink: 0, cursor: 'pointer', accentColor: 'var(--color-primary)' }}
+              />
+              <span style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
+                Li e aceito todos os termos e condições do contrato acima. Entendo que minha assinatura
+                digital tem validade legal e que serei redirecionado para o pagamento ao confirmar.
+              </span>
+            </label>
+
+            {error && (
+              <div className="alert alert--danger" style={{ marginBottom: 16 }}>⚠ {error}</div>
+            )}
+
+            <button
+              className="btn btn--primary btn--full btn--lg"
+              onClick={handleSign}
+              disabled={!signature || !agreed || submitting}
+              id="btn-sign-and-pay"
+              style={{ fontSize: '1.05rem' }}
+            >
+              {submitting ? (
+                <><div className="spinner" /> Processando...</>
+              ) : (
+                `✍️ Assinar e Pagar ${formatCurrency(contract.value)}`
+              )}
+            </button>
+
+            {(!signature && !submitting) && (
+              <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.82rem', marginTop: 10 }}>
+                Faça sua assinatura acima para habilitar o botão
+              </p>
+            )}
+          </div>
+        )}
+
+        {contract.status === 'pending' && (
+          <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.78rem' }}>
+            🔒 Seus dados são protegidos. O pagamento é processado pelo MercadoPago.
+          </p>
+        )}
       </div>
     </div>
   );

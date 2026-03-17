@@ -35,19 +35,5 @@ export default async function ContratoPage({ params }: Props) {
     );
   }
 
-  if (contract.status === 'signed' || contract.status === 'paid') {
-    return (
-      <div className="page-wrapper">
-        <div className="container container--sm" style={{ width: '100%', textAlign: 'center' }}>
-          <div className="status-icon status-icon--success" style={{ margin: '0 auto 24px' }}>✅</div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 12 }}>Contrato já assinado</h1>
-          <p style={{ color: 'var(--color-text-secondary)' }}>
-            Este contrato já foi assinado e processado. Obrigado!
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return <ContratoClient contract={contract} />;
 }
