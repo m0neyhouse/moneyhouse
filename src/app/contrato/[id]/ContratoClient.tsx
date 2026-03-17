@@ -209,6 +209,13 @@ export default function ContratoClient({ contract }: { contract: Contract }) {
             <p style={{ marginTop: 24, fontSize: '0.9rem', color: 'var(--color-success)', fontWeight: 600 }}>
               Status Atual: {contract.status === 'paid' ? 'Contrato Finalizado e Pago' : 'Aguardando Compensação Financeira'}
             </p>
+            <button 
+              className="btn btn--secondary no-print" 
+              style={{ marginTop: 24 }}
+              onClick={() => window.print()}
+            >
+              📥 Baixar em PDF
+            </button>
           </div>
         ) : (
           <div className="card" style={{ marginBottom: 24 }}>

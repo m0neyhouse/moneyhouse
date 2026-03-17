@@ -509,3 +509,34 @@ tr:hover td { background: var(--color-bg); }
   .admin-header { padding: 0 16px; }
   .modal-box { padding: 28px 20px; }
 }
+
+/* ============================================================
+   Print Styles
+   ============================================================ */
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+  
+  .no-print, button, .admin-header {
+    display: none !important;
+  }
+  
+  .card, .contract-document {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  .contract-document {
+    margin-bottom: 40px !important;
+  }
+  
+  .contract-title {
+    color: #000 !important;
+  }
+}
