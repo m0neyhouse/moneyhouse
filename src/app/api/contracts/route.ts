@@ -4,6 +4,8 @@ import { validateSession } from '@/lib/auth';
 import { createContract, listContracts } from '@/lib/contracts';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const createContractSchema = z.object({
   clientName: z.string().min(2).max(100),
   serviceName: z.string().min(2).max(200),

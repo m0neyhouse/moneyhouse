@@ -7,7 +7,7 @@ const BLOB_PREFIX = 'contracts/';
 async function readContract(id: string): Promise<Contract | null> {
   try {
     const blobHead = await head(`${BLOB_PREFIX}${id}.json`);
-    const response = await fetch(blobHead.url);
+    const response = await fetch(blobHead.url, { cache: 'no-store' });
     return (await response.json()) as Contract;
   } catch {
     return null;
