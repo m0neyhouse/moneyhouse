@@ -39,6 +39,7 @@ export async function createPaymentPreference(contract: Contract, rawBaseUrl: st
       auto_return: 'approved',
       external_reference: contract.id,
       statement_descriptor: 'SIGN AND PAY',
+      notification_url: `${baseUrl}/api/webhooks/mercadopago`,
     },
   });
 

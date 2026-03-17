@@ -43,8 +43,17 @@ function verifySignature(req: Request, dataID: string): boolean {
 export async function POST(req: Request) {
   try {
     const url = new URL(req.url);
-    const action = url.searchParams.get('type') || url.searchParams.get('topic');
-    const dataId = url.searchParams.get('data.id') || url.searchParams.get('id');
+    let body: any = {};
+    
+    // Tenta fazer o parse do body em JSON, pois os Webhooks mandam o Payload ali.
+    try {
+      body = await req.clone().json();
+    } catch (e) {
+      // Body vazio ou não JSON
+    }
+
+    const action = url.searchParams.get('type') || url.searchParams.get('topic') || body.type || body.action;
+    const dataId = url.searchParams.get('data.id') || url.searchParams.get('id') || body.data?.id;
 
     if (!dataId) {
       return NextResponse.json({ success: false, error: 'ID ausente' }, { status: 400 });
@@ -57,7 +66,7 @@ export async function POST(req: Request) {
     }
 
     // Só processamos eventos de pagamento aprovado/atualizado
-    if (action === 'payment' && dataId) {
+    if ((action === 'payment' || action === 'payment.updated' || action === 'payment.created') && dataId) {
       // 1. Consulta ao MercadoPago a API Oficial pelo status atualizado do ID do pagamento.
       if (!MERCADOPAGO_ACCESS_TOKEN) throw new Error('Cade o token');
       
